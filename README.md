@@ -1,4 +1,4 @@
-# webdist-pro
+# web-dist-pro
 传统模式开发的web站点，进行整站所有文件压缩及混淆处理，高级版
 
 很多公司开发的项目或非web前端工程师开发的一些web前端页面或系统都不是基于NodeJS或当前流行的前端技术栈来开发的，对于这部分人群来说压缩混淆整个web站点还是有点难度。
@@ -22,5 +22,8 @@
 2. 支持css、html、图片文件压缩
 3. 保持原项目的所有目录结构和其他格式文件的复制
  
+## 简单的压缩混淆方式
+   访问 [ https://github.com/muyao1987/web-dist]( https://github.com/muyao1987/web-dist)，该仓库与本仓库基本相同，没有采用obfuscator加密，可以根据需要自行选择。
+
 ## 作者
   [火星科技](http://marsgis.cn/) - [木遥](https://work.weixin.qq.com/wework_admin/user/h5/qqmail_user_card/vc9b130b6638aebeb7)  
