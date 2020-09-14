@@ -59,25 +59,6 @@ var noCopyPath = [];
 var optsObfuscator = {
   compact: true,//压缩代码
 
-  controlFlowFlattening: true,  //是否启用控制流扁平化(降低1.5倍的运行速度)
-  controlFlowFlatteningThreshold: 0.7,   //应用概率0-1;在较大的代码库中，建议降低此值，因为大量的控制流转换可能会增加代码的大小并降低代码的速度。
-
-  deadCodeInjection: true,  //随机的死代码块(增加了混淆代码的大小)
-  deadCodeInjectionThreshold: 0.4,  //死代码块的影响概率
-
-  debugProtection: false, //是否禁止使用 F12开发者工具的控制台选项卡，可以用来在线代码的禁止别人调试
-  debugProtectionInterval: false, //如果选中，则会在“控制台”选项卡上使用间隔强制调试模式，从而更难使用“开发人员工具”的其他功能。
-  disableConsoleOutput: false,  //是否禁止使用的console.log，console.info，console.error和console.warn。这使得调试器的使用更加困难。
-  domainLock: [], //锁定混淆的源代码，使其仅在特定域和/或子域上运行。这使得某人只需复制并粘贴您的源代码并在其他地方运行就变得非常困难。
-
-  identifierNamesGenerator: 'hexadecimal',  //设置标识符名称生成器。 hexadecimal(十六进制) mangled(短标识符)
-  selfDefending: false, //【如果报错，改为false】使输出代码可抵抗格式设置和变量重命名。如果尝试在混淆后的代码上使用JavaScript美化器，则该代码将无法再使用，从而使其难以理解和修改。
-
-  stringArray: true,//删除字符串文字并将它们放在一个特殊的数组中
-  stringArrayEncoding: 'base64', //'rc4'   'base64'
-  stringArrayThreshold: 0.75,
-
-  transformObjectKeys: false, //启用对象键的转换
 }
 
 
