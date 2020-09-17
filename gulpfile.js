@@ -11,7 +11,7 @@ const cssmin = require('gulp-clean-css');
 const imagemin = require('gulp-imagemin');
 const pngquant = require('imagemin-pngquant');
 const obfuscator = require('javascript-obfuscator');
-const obfuscatorGulp = require('gulp-javascript-obfuscator');
+const obfuscatorGulp = require('./gulp-javascript-obfuscator.js');
 
 const fs = require('fs');
 const path = require('path');
@@ -55,7 +55,7 @@ var noCopyPath = [];
 // lastTime = new Date("2020-08-01 08:00:00")
 
 ////////////////////压缩混淆////////////////////
-//js高级混淆的参数
+//js高级混淆的参数,更多参数参考： https://github.com/javascript-obfuscator/javascript-obfuscator
 var optsObfuscator = {
   compact: true,//压缩代码
 
@@ -74,8 +74,8 @@ gulp.task('build', done => {
 
 
   fileList.forEach(t => {
-    var srcFile = t.pathname; 
-    const outFilePath = distPath; 
+    var srcFile = t.pathname;
+    const outFilePath = distPath;
     // console.log('读取：' + srcFile + '\n输出：' + outFilePath + '\n');
 
     let stat = fs.statSync(srcFile);
@@ -99,7 +99,7 @@ gulp.task('build', done => {
         })
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
-              throwOnlyCopy(srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
+              throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
             }
           }))
           .pipe(babel({
@@ -109,7 +109,7 @@ gulp.task('build', done => {
           }))
           .pipe(uglify().on('error', function () {
             this.emit('end');
-            throwOnlyCopy(srcFile, outFilePath, err);
+            throwOnlyCopy(srcPath, srcFile, outFilePath, err);
           }))
           .pipe(obfuscatorGulp(optsObfuscator))
           .pipe(header(banner, bannerData))
@@ -121,7 +121,7 @@ gulp.task('build', done => {
         })
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
-              throwOnlyCopy(srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
+              throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
             }
           }))
           .pipe(cheerio({
@@ -146,7 +146,7 @@ gulp.task('build', done => {
                   }
                 } catch (err) {
                   console.log(err);
-                  throwOnlyCopy(srcFile, outFilePath, "html内联js编译错误！");
+                  throwOnlyCopy(srcPath, srcFile, outFilePath, "html内联js编译错误！");
                 }
               });
             }
@@ -170,7 +170,7 @@ gulp.task('build', done => {
         })
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
-              throwOnlyCopy(srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
+              throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
             }
           }))
           .pipe(cssmin({
@@ -249,10 +249,12 @@ function travel(dir) {
 
 
 // 抛出错误信息，直接copy文件
-function throwOnlyCopy(pathname, outFilePath, message) {
+function throwOnlyCopy(srcPath, pathname, outFilePath, message) {
   console.log(`[错误] ${pathname} ${message}`);
   if (pathname && outFilePath) {
-    gulp.src(pathname).pipe(gulp.dest(outFilePath));
+    gulp.src(pathname, {
+      base: srcPath
+    }).pipe(gulp.dest(outFilePath));
   }
 }
 
