@@ -1,6 +1,7 @@
 //在gulpfile中先载入gulp包，因为这个包提供了一些API
 const gulp = require('gulp');
 const babel = require('gulp-babel');
+const plumber = require('gulp-plumber');
 const babelCore = require("@babel/core");
 const utf8Convert = require('gulp-utf8-convert');
 const uglify = require('gulp-uglify');
@@ -57,7 +58,8 @@ var noCopyPath = [];
 ////////////////////压缩混淆////////////////////
 //js高级混淆的参数,更多参数参考： https://github.com/javascript-obfuscator/javascript-obfuscator
 var optsObfuscator = {
-  compact: true,//压缩代码
+     rotateUnicodeArray: true,
+     compact: true
 
 }
 
@@ -97,6 +99,11 @@ gulp.task('build', done => {
         gulp.src(srcFile, {
           base: srcPath
         })
+          .pipe(plumber({
+            errorHandler: function (err) {
+              throwOnlyCopy(srcPath, srcFile, outFilePath, err);
+            }
+          }))
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
               throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
@@ -111,14 +118,18 @@ gulp.task('build', done => {
             this.emit('end');
             throwOnlyCopy(srcPath, srcFile, outFilePath, err);
           }))
-          .pipe(obfuscatorGulp(optsObfuscator))
+          .pipe(optsObfuscator.compact ? obfuscatorGulp(optsObfuscator) : header(banner, bannerData))
           .pipe(header(banner, bannerData))
           .pipe(gulp.dest(outFilePath))
         break
       case ".html":
         gulp.src(srcFile, {
           base: srcPath
-        })
+        }).pipe(plumber({
+          errorHandler: function (err) {
+            throwOnlyCopy(srcPath, srcFile, outFilePath, err);
+          }
+        }))
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
               throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
@@ -136,16 +147,20 @@ gulp.task('build', done => {
                       sourceType: "script",
                       compact: false
                     });
-                    //普通加密
-                    // script.text(result.code);
 
-                    //高级加密
-                    optsObfuscator.controlFlowFlattening = true
-                    var obfuscationResult = obfuscator.obfuscate(result.code, optsObfuscator);
-                    script.text(obfuscationResult.getObfuscatedCode());
+                    if (optsObfuscator.compact) {
+                      //高级加密
+                      optsObfuscator.controlFlowFlattening = true
+                      var obfuscationResult = obfuscator.obfuscate(result.code, optsObfuscator);
+                      script.text(obfuscationResult.getObfuscatedCode());
+                    }
+                    else {
+                      //普通加密 
+                      script.text(result.code);
+                    }
                   }
                 } catch (err) {
-                  console.log(err);
+                  console.log("转换html出错了",err);
                   throwOnlyCopy(srcPath, srcFile, outFilePath, "html内联js编译错误！");
                 }
               });
@@ -168,6 +183,11 @@ gulp.task('build', done => {
         gulp.src(srcFile, {
           base: srcPath
         })
+        .pipe(plumber({
+          errorHandler: function (err) { 
+            throwOnlyCopy(srcPath, srcFile, outFilePath, err);
+          }
+        }))
           .pipe(utf8Convert({
             encNotMatchHandle: function (file) {
               throwOnlyCopy(srcPath, srcFile, outFilePath, " 编码可能不是utf-8，避免乱码请检查！");
@@ -188,6 +208,11 @@ gulp.task('build', done => {
         gulp.src(srcFile, {
           base: srcPath
         })
+        .pipe(plumber({
+          errorHandler: function (err) { 
+            throwOnlyCopy(srcPath, srcFile, outFilePath, err);
+          }
+        }))
           .pipe(imagemin({
             //optimizationLevel: 5,   //类型：Number  默认：3  取值范围：0-7（优化等级）
             progressive: true,      //类型：Boolean 默认：false 无损压缩jpg图片
@@ -250,7 +275,7 @@ function travel(dir) {
 
 // 抛出错误信息，直接copy文件
 function throwOnlyCopy(srcPath, pathname, outFilePath, message) {
-  console.log(`[错误] ${pathname} ${message}`);
+  console.log(`[转换出错了] ${pathname}`, message);
   if (pathname && outFilePath) {
     gulp.src(pathname, {
       base: srcPath
