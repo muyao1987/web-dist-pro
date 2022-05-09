@@ -9,8 +9,7 @@ const header = require('gulp-header');
 const htmlmin = require('gulp-htmlmin');
 const cheerio = require('gulp-cheerio');
 const cssmin = require('gulp-clean-css');
-const imagemin = require('gulp-imagemin');
-const pngquant = require('imagemin-pngquant');
+
 const obfuscator = require('javascript-obfuscator');
 const obfuscatorGulp = require('./gulp-javascript-obfuscator.js');
 
@@ -200,26 +199,7 @@ gulp.task('build', done => {
           }))
           .pipe(header(banner, bannerData))
           .pipe(gulp.dest(outFilePath));
-        break;
-      case "png":
-      case "jpg":
-      case "gif":
-      case "ico":
-        gulp.src(srcFile, {
-          base: srcPath
-        })
-        .pipe(plumber({
-          errorHandler: function (err) { 
-            throwOnlyCopy(srcPath, srcFile, outFilePath, err);
-          }
-        }))
-          .pipe(imagemin({
-            //optimizationLevel: 5,   //类型：Number  默认：3  取值范围：0-7（优化等级）
-            progressive: true,      //类型：Boolean 默认：false 无损压缩jpg图片
-            use: [pngquant()]       //使用pngquant深度压缩png图片的imagemin插件
-          }))
-          .pipe(gulp.dest(outFilePath));
-        break;
+        break; 
       default:
         gulp.src(srcFile, {
           base: srcPath
