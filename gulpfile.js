@@ -253,9 +253,9 @@ function travel(dir) {
 
 
 
-// 抛出错误信息，直接copy文件
+// 抛出错误信息，直接copy文件,不影响整个混淆流程
 function throwOnlyCopy(srcPath, pathname, outFilePath, message) {
-  console.log(`[转换出错了] ${pathname}`, message);
+  console.log(`警告：该文件转换异常,未混淆成功，将直接拷贝过去 ${pathname}`, message);
   if (pathname && outFilePath) {
     gulp.src(pathname, {
       base: srcPath
