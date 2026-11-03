@@ -1,3 +1,23 @@
+/**
+ * web-dist-pro 整站压缩混淆构建脚本（基于 gulp 4）
+ *
+ * 用途：
+ *   对传统模式开发的 web 站点（放在 src 目录）进行整站递归处理，产物输出到 dist 目录：
+ *   - .js   文件：babel 转译(ES6+ → ES5) → uglify 压缩 → javascript-obfuscator 高级混淆
+ *   - .html 文件：内联 script 转译/混淆 + htmlmin 压缩
+ *   - .css  文件：clean-css 压缩
+ *   - 其他文件：原样拷贝，保持原目录结构
+ *
+ * 来源：
+ *   作者：火星科技 木遥（muyao1987）http://marsgis.cn
+ *   仓库：https://github.com/muyao1987/web-dist-pro
+ *
+ * 用法：
+ *   1. 将需要处理的站点放入 src 目录；
+ *   2. 执行 npm run build（即 gulp build）；
+ *   3. 结果站点生成在 dist 目录，拷贝至 http 服务容器发布即可。
+ */
+
 //在gulpfile中先载入gulp包，因为这个包提供了一些API
 const gulp = require('gulp');
 const babel = require('gulp-babel');
@@ -64,7 +84,15 @@ var optsObfuscator = {
 
 
 
+//待处理文件列表，由 travel() 递归填充，元素结构：{ pathname: 文件路径, fileType: 文件后缀 }
 const fileList = [];
+
+/**
+ * 构建任务：遍历 src 目录，按文件类型分发到对应的压缩/混淆流程，产物输出到 dist 目录。
+ * 若配置了 lastTime，则仅处理该时间之后修改过的文件（增量更新）。
+ *
+ * @param {Function} done - gulp 4 的任务完成回调
+ */
 gulp.task('build', done => {
   // console.log('--------代码编译开始--------');
 
@@ -214,7 +242,14 @@ gulp.task('build', done => {
 
 
 
-//遍历目录获取文件列表
+/**
+ * 递归遍历目录，收集待处理文件到模块级变量 fileList。
+ * - 依据 noCopyPathDef / noCopyPath / noCopyFileType 排除不需要处理的目录和文件；
+ * - 命中 noPipePathDef / noPipePath 的文件将 fileType 置空，走"原样拷贝"分支（如 Cesium）。
+ *
+ * @param {string} dir - 待遍历的目录路径
+ * @returns {void}
+ */
 function travel(dir) {
   fs.readdirSync(dir).forEach(function (file) {
     let pathname = path.join(dir, file);
@@ -236,8 +271,7 @@ function travel(dir) {
       if (noCopyFileType.indexOf(fileType) !== -1) return;
 
       //不做压缩处理,直接原样拷贝过去
-      if (noPipePath.some(t => pathname.indexOf("\\Cesium\\") !== -1)//不对Cesium目录压缩 
-        || noPipePathDef.some(t => pathname.indexOf(t) !== -1)
+      if (noPipePathDef.some(t => pathname.indexOf(t) !== -1)//不对Cesium目录压缩
         || noPipePath.some(t => pathname.indexOf(t) !== -1)
       ) {
         fileType = "";
@@ -253,7 +287,16 @@ function travel(dir) {
 
 
 
-// 抛出错误信息，直接copy文件,不影响整个混淆流程
+/**
+ * 处理失败时的兜底逻辑：打印警告信息，并将出错的源文件原样拷贝到目标目录，
+ * 从而不中断整个构建混淆流程。
+ *
+ * @param {string} srcPath - 源根目录（用于保持相对目录结构）
+ * @param {string} pathname - 转换异常的源文件路径
+ * @param {string} outFilePath - 输出根目录
+ * @param {string|Error} message - 错误信息
+ * @returns {void}
+ */
 function throwOnlyCopy(srcPath, pathname, outFilePath, message) {
   console.log(`警告：该文件转换异常,未混淆成功，将直接拷贝过去 ${pathname}`, message);
   if (pathname && outFilePath) {
@@ -265,6 +308,13 @@ function throwOnlyCopy(srcPath, pathname, outFilePath, message) {
 
 
 
+/**
+ * 扩展 Date 原型：将日期格式化为指定模板的字符串（如 "yyyy-M-d HH:mm:ss"），
+ * 用于生成输出文件头部版权注释中的时间。
+ *
+ * @param {string} fmt - 格式模板，支持 y/M/d/h/H/m/s/q/S 占位符
+ * @returns {string} 格式化后的日期字符串
+ */
 Date.prototype.format = function (fmt) {
   var o = {
     "M+": this.getMonth() + 1, //月份

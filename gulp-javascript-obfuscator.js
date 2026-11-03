@@ -1,3 +1,13 @@
+/**
+ * gulp-javascript-obfuscator —— javascript-obfuscator 的 gulp 流插件（第三方代码，本地副本）
+ *
+ * 来源：https://github.com/javascript-obfuscator/gulp-javascript-obfuscator（MIT License）
+ *
+ * 说明：
+ *   本文件为官方插件的本地副本（略有调整），供 gulpfile.js 以 `require('./gulp-javascript-obfuscator.js')`
+ *   方式引入使用，对流中的 JS 文件内容执行 javascript-obfuscator 高级混淆，并支持 sourcemap 透传。
+ *   属第三方插件代码，此处仅标明来源，不做逐行注释与修改。
+ */
 const through2 = require('through2');
 const Vinyl = require('vinyl');
 const JavaScriptObfuscator = require('javascript-obfuscator');
